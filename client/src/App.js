@@ -1,4 +1,6 @@
 import { ApolloProvider, ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
+import { setContext } from '@apollo/client/link/context';
+
 //ApolloProvider is a special type of React component that we'll use to provide data to all of the other components.
 //ApolloClient is a constructor function that will help initialize the connection to the GraphQL API server.
 //InMemoryCache enables the Apollo Client instance to cache API response data so that we can perform requests more efficiently.
@@ -22,8 +24,18 @@ const httpLink = createHttpLink({
   uri: '/graphql',
 });
 
+const authLink = setContext((_, { headers }) => {
+  const token = localStorage.getItem('id_token');
+  return {
+    headers: {
+      ...headers,
+      authorization: token ? `Bearer ${token}` : '',
+    },
+  };
+});
+
 const client = new ApolloClient({
-  link: httpLink,
+  link: authLink.concat(httpLink),
   cache: new InMemoryCache(),
 });
 //ApolloClient() constructor to instantiate the Apollo Client instance and create the connection to the API endpoint.
